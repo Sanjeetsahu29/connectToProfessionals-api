@@ -1,0 +1,17 @@
+{
+  "name": "proconnect-api",
+  "version": "1.0.0",
+  "description": "A modern professional networking platform that helps users discover and connect with people based on their professional persona, skills, expertise, interests, and goals—making professional networking more relevant, personalized, and meaningful.",
+  "license": "ISC",
+  "author": "Sanjeet Kumar Sahu",
+  "type": "commonjs",
+  "main": "app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev":"nodemon src/app.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14"
+  }
+}
