@@ -1,17 +1,20 @@
 const express = require("express");
 const app = express();
-const port = 3000;
 const connectDB = require("./config/database");
 const User = require("./models/user.model");
+const dotenv = require("dotenv");
+dotenv.config();
 
+const port = process.env.PORT || 4000;
 app.post("/signup", async (req, res) => {
   //creating a new instance of the User model with the data
-  const newUser = new User({
-    firstName: "Sanjeet",
-    lastName: "Sahu",
-    email: "Sanjeet@gmail.com",
-    password: "Sanjeet@123",
-  });
+  // const newUser = new User({
+  //   firstName: "Sanjeet",
+  //   lastName: "Sahu",
+  //   email: "Sanjeet@gmail.com",
+  //   password: "Sanjeet@123",
+  // });
+  console.log("Request body:", req.body);
 
   try {
     const savedUser = await newUser.save();
@@ -35,5 +38,5 @@ connectDB()
     });
   })
   .catch((err) => {
-    console.error("Error connecting to the database", err.errorResponse.errmsg);
+    console.error("Error connecting to the database", err);
   });
