@@ -1,4 +1,5 @@
-# ConnectToProfessional Backend: Understanding Every step, Why it matters, and the Engineering thought process
+# ConnectToProfessional Backend: 
+Understanding Every step, Why it matters, and the Engineering thought process
 
 <img width="2752" height="1536" alt="Gemini_Generated_Image_5edyhl5edyhl5edy" src="https://github.com/user-attachments/assets/e845961f-b76c-40fd-a1f8-7bed9f3754eb" />
 
@@ -27,3 +28,20 @@ Database Schema Design
 
 1. User schema (First name, Last name, email address, password, age, gender, skills, about, professional experiences, interest, hobby)
 2. ConnectionRequest schema (from User Id, to User Id, status - [ interested, ignored, accepted, rejected ]
+
+### API List of the project
+1. auth Router
+   - POST /signup
+   - POST /login
+   - POST /logout
+2. profile Router
+   - GET /profile/view
+   - PATCH /profile/edit
+   - PATCH /profile/password
+3. connection Request Router
+   - POST /request/send/:status/:userID
+   - POST /request/review/:status/:requestID
+4. user Router
+   - GET /user/request/received
+   - GET /user/connections
+   - GET /user/feed - Gets you the profiles of other users on platform
