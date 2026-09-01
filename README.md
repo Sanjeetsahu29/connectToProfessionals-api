@@ -91,3 +91,44 @@ Database Schema Design
    By default, Node.js and Express treat request bodies as raw streams of data. Without this middleware, if a client sends a JSON payload to your server, the **`req.body` property will return `undefined`**. This single line of code catches those streams, converts the raw JSON string into a native JavaScript object, and populates `req.body` so you can immediately interact with the data.
 
    </aside>
+
+<hr>
+
+## Connecting to the database
+
+Once the basic server is setup and start responding to request it recieve then it become necessary to setup the database connection for data to persist and perform the operation on the data.
+
+Get the connection URI from the mongoDB database after the setting up the free tier cluster.
+
+Since our backend or node.js can’t communicate to the database directly therefore we need the medium to be able to communicate with database. And depending on the database type we need a tool like ORM (Object Relational Mapping ) for relational database and ODM (Object Document Mapping ) for mongoDB database.
+
+Mongoose is one of ODM. Therefore I would be using mongoose in my backend to communicate with database and perform required actions. To install mongoose type `npm i mongoose`
+
+For connecting to database we don’t write the logic in the app.js rather I would make a separate folder or directory with name ‘config’ and then under this folder I would create a file name database.js for writing the logic to connect to the database.
+
+```
+const mongoose = require('mongoose')
+const connectDB = async () => {
+    await mongoose.connect('connectionUri')
+}
+module.exports = connectDB;
+```
+
+Now this piece of code is modular and provide a better control flow. Using this I can import it my app.js main backend file where I can implement a logic to first connect to database and upon successful connection I will start the server else not.
+
+```
+const express = require("express");
+const connectDB  = require("./config/database");
+const app = express();
+const port = 3000;
+
+connectDB()
+		.then ( () => {
+			app.listen(port, ()=>{
+				console.log("Connected to database and Server is listening on port: "+port)
+				}
+		 )
+		.catch(err){
+				console.log("Database connection failed and server is not available")
+		}
+```
