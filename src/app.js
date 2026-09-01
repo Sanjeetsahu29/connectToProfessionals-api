@@ -1,15 +1,15 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 const port = 3000;
+const connectDB = require("./config/database");
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
-
-app.get('/test', (req, res) => {
-  res.send('Hello from the test page!');
-});
-
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
+connectDB()
+  .then(() => {
+    console.log("Connected to the database");
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Error connecting to the database", err.errorResponse.errmsg);
+  });
