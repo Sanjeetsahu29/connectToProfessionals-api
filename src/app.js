@@ -100,7 +100,31 @@ app.delete("/user", async (req, res) => {
 
 app.patch("/user", async (req, res) => {
   const { emailID, ...updateData } = req.body;
+  // console.log("Update Data:", updateData);
+
   try {
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        message: "No update data provided",
+      });
+    }
+    const ALLOWED_FIELDS = [
+      "lastName",
+      "about",
+      "profilePhoto",
+      "age",
+      "skills",
+      "interests",
+    ];
+    const isValidUpdate = Object.keys(updateData).every((field) => {
+      return ALLOWED_FIELDS.includes(field);
+    });
+    if (!isValidUpdate) {
+      return res.status(400).json({
+        message:
+          "Invalid update fields. Only lastName, about, profilePhoto, age, skills, and interests can be updated.",
+      });
+    }
     const updateUser = await User.findOneAndUpdate(
       { email: emailID },
       updateData,
