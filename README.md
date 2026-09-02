@@ -132,3 +132,304 @@ connectDB()
 				console.log("Database connection failed and server is not available")
 		}
 ```
+
+<hr>
+
+## Writing User Schema using mongoose ODM (Object Document Mapper )
+
+A schema defines the structure and rules for documents that will be stored in a MongoDB collection.
+
+When building a backend application, we need to define what information a User document should contain. The Mongoose schema provides a structured way to describe:
+
+Which fields a user can have
+The data type of each field
+Which fields are required
+Which fields must be unique
+Additional validation and behavior
+
+For example, a user can have fields such as:
+
+- firstName
+- lastName
+- email
+- password
+- age
+- gender
+- about
+- skills
+- interest
+  Mongoose uses this schema as the application's data model when interacting with MongoDB.
+
+#### Creating a User Schema
+
+First, import Mongoose
+
+```
+const mongoose = require("mongoose");
+```
+
+Then create the schema using mongoose.Schema():
+
+```
+const userSchema = new mongoose.Schema({
+  firstName: {
+    type: String,
+    required: true,
+  },
+
+  lastName: {
+    type: String,
+    required: true,
+  },
+
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
+  password: {
+    type: String,
+    required: true,
+  },
+
+  age: {
+    type: Number,
+  },
+
+  gender: {
+    type: String,
+  },
+});
+```
+
+#### Understanding Each Field
+
+`firstName`
+
+```
+firstName: {
+  type: String,
+  required: true,
+}
+```
+
+- **type**: String → The value must be a string.
+- **required**: true → The field must be provided when creating a user.
+
+`lastName`
+
+```
+lastName: {
+  type: String,
+  required: true,
+}
+```
+
+The user's last name is also required and must be a string.
+
+`email`
+
+```
+email: {
+  type: String,
+  required: true,
+  unique: true,
+}
+```
+
+The email field has three important properties:
+
+- **String** → Email is stored as a string.
+- **required**: true → Every user must provide an email.
+- **unique**: true → The email should be unique among users.
+For example, two users should not normally have the same email address.
+<blockquote>
+unique: true is primarily an instruction for creating a unique MongoDB index; it is not a complete application-level validation mechanism. Your API should still handle duplicate-key errors properly.
+</blockquote>
+
+`password`
+
+```
+password: {
+  type: String,
+  required: true,
+}
+```
+
+The password is required and stored as a string.
+
+In a real application, never store the user's plain-text password. The password should be hashed before being stored in MongoDB.
+
+`age`
+
+```
+age: {
+  type: Number,
+}
+```
+
+The age field is optional because required: true has not been specified.
+
+You can also add validation rules later, for example
+
+```
+age: {
+  type: Number,
+  min: 18,
+  max: 100,
+}
+```
+
+`gender`
+
+```
+gender: {
+  type: String,
+}
+```
+
+The gender field is optional and must contain a string.
+
+For production applications, you may want to restrict the allowed values rather than accepting arbitrary strings.
+
+```
+gender: {
+  type: String,
+  enum: ["male", "female", "other"],
+}
+```
+
+#### Schema vs. Document
+
+It is important to understand the difference between a schema and a document.
+
+`Schema`
+The schema defines the expected structure:
+
+```
+const userSchema = new mongoose.Schema({
+  firstName: String,
+  lastName: String,
+  email: String,
+});
+```
+
+Think of it as a blueprint.
+
+`Document`
+A document is an actual piece of data stored in MongoDB:
+
+```
+{
+  "_id": "68...",
+  "firstName": "Sanjeet",
+  "lastName": "Kumar",
+  "email": "sanjeet@example.com"
+}
+```
+
+Think of the document as an actual object created using that blueprint.
+
+#### Creating a Mongoose Model
+
+After defining the schema, create a model
+
+```
+const User = mongoose.model("User", userSchema);
+```
+
+The model provides the interface through which your application interacts with MongoDB.
+
+For example:
+
+```
+const user = new User({
+  firstName: "Sanjeet",
+  lastName: "Kumar",
+  email: "sanjeet@example.com",
+  password: "hashedPassword",
+  age: 25,
+  gender: "male",
+});
+await user.save();
+```
+
+#### Exporting the Model
+
+Finally, export the model
+
+```
+module.exports = User;
+```
+
+This allows other files in the application to import and use the User model.
+
+For example:
+
+```
+const User = require("./models/user");
+```
+
+The model can then be used inside controllers, route handlers, services, etc.
+
+### Complete User Schema
+
+A cleaner version of the current schema would be
+
+```
+const mongoose = require("mongoose");
+
+const userSchema = new mongoose.Schema({
+  firstName: {
+    type: String,
+    required: true,
+  },
+
+  lastName: {
+    type: String,
+    required: true,
+  },
+
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
+  password: {
+    type: String,
+    required: true,
+  },
+
+  age: {
+    type: Number,
+  },
+
+  gender: {
+    type: String,
+  },
+});
+
+const User = mongoose.model("User", userSchema);
+
+module.exports = User;
+```
+
+#### Mental Model
+
+```
+Schema
+   ↓
+Defines document structure
+   ↓
+Model
+   ↓
+Provides database operations
+   ↓
+MongoDB Collection
+   ↓
+User Documents
+```
+
+The important distinction is: MongoDB stores documents; Mongoose schemas define the application's expected structure for those documents; Mongoose models provide the API used by your Node.js application to work with them.
