@@ -433,3 +433,352 @@ User Documents
 ```
 
 The important distinction is: MongoDB stores documents; Mongoose schemas define the application's expected structure for those documents; Mongoose models provide the API used by your Node.js application to work with them.
+
+<hr>
+
+## Schema-Level Validation in Mongoose
+
+Schema-level validation is the process of defining rules in a Mongoose schema to ensure that data meets specific requirements before it is stored in MongoDB.
+
+A basic schema defines the shape of the data:
+
+```javaScript
+email: {
+  type: String,
+  required: true,
+}
+```
+
+Schema-level validation goes further by defining what constitutes valid data.
+
+For example:
+
+- A name must be between 2 and 50 characters.
+- An email must have a valid email format.
+- A password must satisfy specific strength requirements.
+- Age must be between 15 and 100.
+- Gender must be one of a predefined set of values.
+- A profile photo must be a valid URL.
+- A user cannot have more than 20 skills.
+
+This keeps invalid data from entering the database through the Mongoose model.
+
+### Why Do We Need Schema-Level Validation?
+
+Without validation, the application could potentially accept data such as:
+
+```
+{
+  "firstName": "",
+  "email": "hello",
+  "age": 500,
+  "gender": "abc"
+}
+```
+
+Although the fields may technically exist, the data is not meaningful.
+Validation provides a data-quality boundary between the application and the database.
+A useful way to think about it is:
+
+```
+Client
+   ↓
+API Request
+   ↓
+Mongoose Schema Validation
+   ↓
+Valid Data ─────→ MongoDB
+   │
+   └── Invalid Data → Validation Error
+```
+
+### Mongoose Built-in Validators vs. validator.js
+
+Mongoose already provides several built-in validation options:
+
+```
+required
+min
+max
+minLength
+maxLength
+enum
+```
+
+However, Mongoose does not provide specialized validators for every type of data.
+
+For example, validating whether a string is:
+
+- A properly formatted email
+- A strong password
+- A valid URL
+
+can be handled more conveniently using the validator npm package.
+
+The package is commonly known as validator.js.
+
+### Installing the Validator Package
+
+Install the package using npm:
+
+```
+npm install validator
+```
+
+Then import it into the schema file:
+
+```
+const validator = require("validator");
+```
+
+Now we can use functions provided by the package:
+
+```
+validator.isEmail(value);
+validator.isStrongPassword(value);
+validator.isURL(value);
+```
+
+The important idea is:
+
+<blockquote>
+Mongoose manages the schema and validation lifecycle, while validator.js provides specialized string-validation functions.
+</blockquote>
+
+### required Validation
+
+The simplest schema-level validator is required.
+
+```
+firstName: {
+  type: String,
+  required: [true, "First name is required"],
+}
+```
+
+The required option can be specified as:
+
+```
+required: true
+
+or, more usefully:
+
+required: [true, "First name is required"]
+```
+
+The second form provides a custom error message.
+
+If the field is missing, Mongoose generates a validation error containing:
+
+```
+First name is required
+```
+
+This is preferable to relying only on generic error messages because the API can return meaningful feedback to the client.
+
+### String Validation with trim
+
+```
+firstName: {
+  type: String,
+  required: [true, "First name is required"],
+  trim: true,
+}
+```
+
+trim: true removes whitespace from the beginning and end of a string.
+
+For example:
+
+```
+"   Sanjeet   "
+```
+
+becomes:
+
+```
+"Sanjeet"
+```
+
+This is particularly useful for fields such as:
+
+- Names
+- Email addresses
+- User descriptions
+- Skills
+- Interests
+
+#### Why does this matter?
+
+Without trimming, two visually identical values can potentially be treated differently:
+
+```
+"Sanjeet"
+" Sanjeet "
+```
+
+Using trim normalizes the value before storage.
+
+### Email Validation Using validator.js
+
+Email validation is one of the most important examples of using validator.js.
+
+```
+email: {
+  type: String,
+  required: [true, "Email is required"],
+  unique: true,
+  trim: true,
+  lowercase: true,
+  validate: {
+    validator: function (value) {
+      return validator.isEmail(value, {
+        minLength: 12,
+        maxLength: 50,
+      });
+    },
+    message: (props) =>
+      `${props.value} is not a valid email address and should be between 12 and 50 characters long!`,
+  },
+}
+```
+
+There are several concepts here.
+
+#### The validate Property
+
+Mongoose allows us to create custom validators using the validate option.
+
+The basic structure is:
+
+```
+validate: {
+  validator: function (value) {
+    return true;
+  },
+  message: "Validation failed",
+}
+```
+
+The validator function receives the value being validated.
+For example:
+
+```
+validator: function (value) {
+  return validator.isEmail(value);
+}
+```
+
+The function must return:
+
+```
+true  → validation passes
+false → validation fails
+```
+
+### How the Email Validator Works
+
+Consider:
+
+```
+validator: function (value) {
+  return validator.isEmail(value);
+}
+```
+
+Suppose the user submits:
+
+```
+sanjeet@example.com
+```
+
+Mongoose passes that value to the validator:
+
+```
+validator.isEmail("sanjeet@example.com");
+```
+
+The result is:
+
+```
+true
+```
+
+Therefore, validation succeeds.
+
+If the user submits:
+
+```
+hello
+```
+
+then:
+
+```
+validator.isEmail("hello");
+```
+
+returns:
+
+```
+false
+```
+
+Mongoose therefore rejects the document with a validation error.
+
+### Custom Validation Messages
+
+The message property defines what should be reported when the validator returns false.
+
+```
+message: (props) =>
+  `${props.value} is not a valid email address and should be between 12 and 50 characters long!`,
+```
+
+props.value contains the value that failed validation.
+
+### Final Mental Model
+
+```
+User Schema
+│
+├── Structure
+│   ├── firstName
+│   ├── lastName
+│   ├── email
+│   ├── password
+│   ├── age
+│   ├── gender
+│   ├── about
+│   ├── profilePhoto
+│   ├── skills
+│   └── interests
+│
+├── Built-in Validation
+│   ├── required
+│   ├── min
+│   ├── max
+│   ├── minLength
+│   ├── maxLength
+│   └── enum
+│
+├── Custom Validation
+│   ├── isEmail()
+│   ├── isStrongPassword()
+│   ├── isURL()
+│   └── Array validation
+│
+├── Data Transformation
+│   ├── trim
+│   └── lowercase
+│
+├── Defaults
+│   └── about / profilePhoto
+│
+└── Schema Options
+    └── timestamps
+```
+
+Mongoose schema validation defines the rules that data must satisfy before your application persists it, while validator.js extends Mongoose with specialized validators such as email, password-strength, and URL validation.
+
+<hr>
