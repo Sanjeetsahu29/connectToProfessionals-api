@@ -99,12 +99,12 @@ app.delete("/user", async (req, res) => {
 });
 
 app.patch("/user", async (req, res) => {
-  const { emailID, updateData } = req.body;
+  const { emailID, ...updateData } = req.body;
   try {
     const updateUser = await User.findOneAndUpdate(
       { email: emailID },
       updateData,
-      { new: true },
+      { returnDocument: true, runValidators: true },
     );
     if (updateUser) {
       res.status(200).json({
