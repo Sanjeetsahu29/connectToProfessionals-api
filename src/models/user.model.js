@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
+      immutable: true,
       validate: {
         validator: function (value) {
           return validator.isEmail(value, {
@@ -67,6 +68,7 @@ const userSchema = new mongoose.Schema(
         values: ["male", "female", "other"],
         message: "Gender should be either 'male', 'female', or 'other'",
       },
+      immutable: true,
     },
     about: {
       type: String,
