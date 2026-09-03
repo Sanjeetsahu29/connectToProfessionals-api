@@ -908,3 +908,32 @@ module.exports = User;
 ```
 
 <hr>
+
+## Never Trust data from user - API level data validation
+
+This is very important aspect in our backend service is that, always validate the request data input from the user and then process that data and perform any necessary operation before puting it into the database.
+
+And you should validate at the API/request level as well as at the Mongoose schema level, but the two layers have different responsibilities.
+
+```
+  Client
+    ↓
+  API / Controller validation
+    ↓
+  Business logic
+    ↓
+  Mongoose schema validation
+    ↓
+  MongoDB
+```
+
+Don't blindly duplicate every validation in both places.
+
+#### Why have validation at two levels?
+
+**API-level validation** - Is this request acceptable enough to process?
+**Schema-level validation** - Is this data allowed to exist as a User document?
+
+Currently my mongoose schema already define this very well. That protects the database/model regardless of where the data comes from.
+
+Make a seaprate folder utils and make validation.js file to perform data sanitisation to user input data.

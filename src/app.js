@@ -3,6 +3,7 @@ const app = express();
 const connectDB = require("./config/database");
 const User = require("./models/user.model");
 const dotenv = require("dotenv");
+const { validateSignupData } = require("./utils/validation");
 dotenv.config();
 app.use(express.json());
 
@@ -54,15 +55,9 @@ app.get("/users", async (req, res) => {
 });
 
 app.post("/signup", async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
-  const newUser = new User({
-    firstName: firstName,
-    lastName: lastName,
-    email: email,
-    password: password,
-  });
-
   try {
+    validateSignupData(req);
+    const newUser = new User(req.body);
     const savedUser = await newUser.save();
     res.status(201).json({
       message: "New user saved successfully to the database",
@@ -128,7 +123,7 @@ app.patch("/user", async (req, res) => {
     const updateUser = await User.findOneAndUpdate(
       { email: emailID },
       updateData,
-      { returnDocument: "after", runValidators: true },
+      { returnDocument: "", runValidators: true },
     );
     if (updateUser) {
       res.status(200).json({

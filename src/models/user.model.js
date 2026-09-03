@@ -22,16 +22,15 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: [true, "Email is required"],
+      minLength: [12, "Email should be at least 12 characters long"],
+      maxLength: [50, "Email should not exceed 50 characters"],
       unique: true,
       trim: true,
       lowercase: true,
       immutable: true,
       validate: {
         validator: function (value) {
-          return validator.isEmail(value, {
-            minLength: 12,
-            maxLength: 50,
-          });
+          return validator.isEmail(value);
         },
         message: (props) =>
           `${props.value} is not a valid email address and should be between 12 and 50 characters long!`,
