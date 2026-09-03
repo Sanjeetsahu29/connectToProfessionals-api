@@ -128,7 +128,7 @@ app.patch("/user", async (req, res) => {
     const updateUser = await User.findOneAndUpdate(
       { email: emailID },
       updateData,
-      { returnDocument: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     );
     if (updateUser) {
       res.status(200).json({
