@@ -4,9 +4,6 @@ const connectDB = require("./config/database");
 const User = require("./models/user.model");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
-const { validateSignupData } = require("./utils/validation");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const { userAuth } = require("./middlewares/auth");
 const authRouter = require("./router/auth.route");
 const profileRouter = require("./router/profile.route");
@@ -43,20 +40,6 @@ app.get("/users", async (req, res) => {
   }
 });
 
-app.get("/profile", userAuth, async (req, res) => {
-  try {
-    const user = req.user;
-    res.status(200).json({
-      message: "User fetched successfully",
-      user: user,
-    });
-  } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error finding profile of a user: " + err.message });
-  }
-});
-
 app.post("/sendConnectionRequest", userAuth, async (req, res) => {
   const user = req.user;
   console.log("Sending a connection request");
@@ -82,56 +65,6 @@ app.delete("/user", async (req, res) => {
   } catch (err) {
     res.status(500).json({
       message: "Error deleting user",
-      error: err.message,
-    });
-  }
-});
-
-app.patch("/user", userAuth, async (req, res) => {
-  const { emailID, ...updateData } = req.body;
-  // console.log("Update Data:", updateData);
-
-  try {
-    if (Object.keys(updateData).length === 0) {
-      return res.status(400).json({
-        message: "No update data provided",
-      });
-    }
-    const ALLOWED_FIELDS = [
-      "lastName",
-      "about",
-      "profilePhoto",
-      "age",
-      "skills",
-      "interests",
-    ];
-    const isValidUpdate = Object.keys(updateData).every((field) => {
-      return ALLOWED_FIELDS.includes(field);
-    });
-    if (!isValidUpdate) {
-      return res.status(400).json({
-        message:
-          "Invalid update fields. Only lastName, about, profilePhoto, age, skills, and interests can be updated.",
-      });
-    }
-    const updateUser = await User.findOneAndUpdate(
-      { email: emailID },
-      updateData,
-      { returnDocument: "after", runValidators: true },
-    );
-    if (updateUser) {
-      res.status(200).json({
-        message: "User updated successfully",
-        user: updateUser,
-      });
-    } else {
-      res.status(404).json({
-        message: "User not found",
-      });
-    }
-  } catch (err) {
-    res.status(500).json({
-      message: "Error updating user",
       error: err.message,
     });
   }

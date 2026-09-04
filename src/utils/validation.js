@@ -13,10 +13,10 @@ const validateSignupData = (req) => {
 
   //3. Make sure the client isn't sending unexpected fields
   const allowedFields = ["firstName", "lastName", "email", "password"];
-  const inValidFields = Object.keys(req.body).filter(
+  const isValidFields = Object.keys(req.body).filter(
     (field) => !allowedFields.includes(field),
   );
-  if (inValidFields.length > 0) {
+  if (isValidFields.length > 0) {
     throw new Error(`Invalid fields provided: ${inValidFields.join(", ")}`);
   }
 
@@ -26,9 +26,26 @@ const validateSignupData = (req) => {
   }
 };
 
-const validateUserUpdateData = (req) => {};
+const validateEditProfileData = (req) => {
+  const allowedEditFields = [
+    "lastName",
+    "about",
+    "profilePhoto",
+    "age",
+    "skills",
+    "interests",
+  ];
 
+  const isValidUpdateFields = Object.keys(req.body).every((field) =>
+    allowedEditFields.includes(field),
+  );
+  if (!isValidUpdateFields) {
+    throw new Error(
+      "Invalid update fields. Only lastName, about, profilePhoto, age, skills, and interests can be updated.",
+    );
+  }
+};
 module.exports = {
   validateSignupData,
-  validateUserUpdateData,
+  validateEditProfileData,
 };
