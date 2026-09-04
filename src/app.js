@@ -41,7 +41,7 @@ app.get("/user", async (req, res) => {
 
 app.get("/users", async (req, res) => {
   try {
-    const allUsers = await User.find({});
+    const allUsers = await User.find({}).select("-password");
     if (allUsers.length === 0) {
       res.status(200).json({
         message: "No users found",
@@ -101,7 +101,7 @@ app.post("/login", async (req, res) => {
         message: "Invalid credentials. Please check your email and password.",
       });
     }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await user.validatePassword(password);
     if (!isPasswordValid) {
       return res.status(400).json({
         message: "Invalid credentials. Please check your email and password.",
@@ -112,11 +112,10 @@ app.post("/login", async (req, res) => {
     // this cookies will be used to authenticate the user in the future requests
     // as this cookie will be sent with every request to the server
     // res.cookie("token", "dummyToken");
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = await user.getJWT();
     res.cookie("token", token, {
       httpOnly: true,
+      expires: new Date(Date.now() + 8 * 3600000),
     });
     res.status(200).json({
       message: "Login successful",
@@ -144,6 +143,14 @@ app.get("/profile", userAuth, async (req, res) => {
   }
 });
 
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
+  const user = req.user;
+  console.log("Sending a connection request");
+  res
+    .status(200)
+    .json({ message: `${user.firstName} has sent you connection request` });
+});
+
 app.delete("/user", async (req, res) => {
   const { emailID } = req.body;
   try {
@@ -166,7 +173,7 @@ app.delete("/user", async (req, res) => {
   }
 });
 
-app.patch("/user", async (req, res) => {
+app.patch("/user", userAuth, async (req, res) => {
   const { emailID, ...updateData } = req.body;
   // console.log("Update Data:", updateData);
 
@@ -196,7 +203,7 @@ app.patch("/user", async (req, res) => {
     const updateUser = await User.findOneAndUpdate(
       { email: emailID },
       updateData,
-      { returnDocument: "", runValidators: true },
+      { returnDocument: "after", runValidators: true },
     );
     if (updateUser) {
       res.status(200).json({
