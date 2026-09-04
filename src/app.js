@@ -8,6 +8,11 @@ const { validateSignupData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { userAuth } = require("./middlewares/auth");
+const authRouter = require("./router/auth.route");
+const profileRouter = require("./router/profile.route");
+const requestRouter = require("./router/request.route");
+const userRouter = require("./router/user.route");
+
 dotenv.config();
 // to the read the cookies from the request, else it will be undefined.
 // This middleware will parse the cookies and make them available in req.cookies
@@ -15,29 +20,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 const port = process.env.PORT || 4000;
-
-app.get("/user", async (req, res) => {
-  const { emailID } = req.body;
-  try {
-    const user = await User.findOne({ email: emailID });
-    console.log(user);
-    if (user) {
-      res.status(200).json({
-        message: "User found",
-        user: user,
-      });
-    } else {
-      res.status(404).json({
-        message: "User not found",
-      });
-    }
-  } catch (err) {
-    res.status(500).json({
-      message: "Error finding user",
-      error: err.message,
-    });
-  }
-});
 
 app.get("/users", async (req, res) => {
   try {
@@ -56,74 +38,6 @@ app.get("/users", async (req, res) => {
   } catch (err) {
     res.status(500).json({
       message: "Error finding users",
-      error: err.message,
-    });
-  }
-});
-
-app.post("/signup", async (req, res) => {
-  try {
-    validateSignupData(req);
-    const { firstName, lastName, email, password } = req.body;
-    const existingUser = await User.findOne({ email: req.body.email });
-    if (existingUser) {
-      return res.status(400).json({
-        message: "User with this email already exists",
-      });
-    }
-
-    const passwordHash = await bcrypt.hash(password, 10);
-    const newUser = new User({
-      firstName,
-      lastName,
-      email,
-      password: passwordHash,
-    });
-    const savedUser = await newUser.save();
-    res.status(201).json({
-      message: "New user saved successfully to the database",
-      user: savedUser,
-    });
-  } catch (err) {
-    res.status(500).json({
-      message: "Error saving user to the database",
-      error: err.message,
-    });
-  }
-});
-
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      return res.status(404).json({
-        message: "Invalid credentials. Please check your email and password.",
-      });
-    }
-    const isPasswordValid = await user.validatePassword(password);
-    if (!isPasswordValid) {
-      return res.status(400).json({
-        message: "Invalid credentials. Please check your email and password.",
-      });
-    }
-    // if the password is valid and user exist in the database
-    // generate a token and put it the cookie and send the response to the client
-    // this cookies will be used to authenticate the user in the future requests
-    // as this cookie will be sent with every request to the server
-    // res.cookie("token", "dummyToken");
-    const token = await user.getJWT();
-    res.cookie("token", token, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 8 * 3600000),
-    });
-    res.status(200).json({
-      message: "Login successful",
-      user: user,
-    });
-  } catch (err) {
-    res.status(500).json({
-      message: "Error during login",
       error: err.message,
     });
   }
@@ -222,6 +136,11 @@ app.patch("/user", userAuth, async (req, res) => {
     });
   }
 });
+
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/profile", profileRouter);
+app.use("/api/v1/request", requestRouter);
+app.use("/api/v1/user", userRouter);
 
 connectDB()
   .then(() => {
