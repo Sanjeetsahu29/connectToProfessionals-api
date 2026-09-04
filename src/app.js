@@ -2,11 +2,17 @@ const express = require("express");
 const app = express();
 const connectDB = require("./config/database");
 const User = require("./models/user.model");
+const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const { validateSignupData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middlewares/auth");
 dotenv.config();
+// to the read the cookies from the request, else it will be undefined.
+// This middleware will parse the cookies and make them available in req.cookies
 app.use(express.json());
+app.use(cookieParser());
 
 const port = process.env.PORT || 4000;
 
@@ -101,7 +107,17 @@ app.post("/login", async (req, res) => {
         message: "Invalid credentials. Please check your email and password.",
       });
     }
-
+    // if the password is valid and user exist in the database
+    // generate a token and put it the cookie and send the response to the client
+    // this cookies will be used to authenticate the user in the future requests
+    // as this cookie will be sent with every request to the server
+    // res.cookie("token", "dummyToken");
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+    res.cookie("token", token, {
+      httpOnly: true,
+    });
     res.status(200).json({
       message: "Login successful",
       user: user,
@@ -111,6 +127,20 @@ app.post("/login", async (req, res) => {
       message: "Error during login",
       error: err.message,
     });
+  }
+});
+
+app.get("/profile", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.status(200).json({
+      message: "User fetched successfully",
+      user: user,
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error finding profile of a user: " + err.message });
   }
 });
 
