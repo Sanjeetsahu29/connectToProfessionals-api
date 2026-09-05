@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema(
       required: [true, "Email is required"],
       minLength: [12, "Email should be at least 12 characters long"],
       maxLength: [50, "Email should not exceed 50 characters"],
-      unique: true,
+      unique: true, //Since unique is true for email then mongoDB implicitly marked this field as Indexed field
       trim: true,
       lowercase: true,
       immutable: true,

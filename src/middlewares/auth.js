@@ -4,7 +4,7 @@ const User = require("../models/user.model");
 const userAuth = async (req, res, next) => {
   try {
     const { token } = req.cookies;
-    console.log(token);
+    // console.log(token);
 
     // 1. ADDED 'return' and changed status to 401
     if (!token) {
@@ -16,7 +16,7 @@ const userAuth = async (req, res, next) => {
     // 2. verify() will throw an error to the catch block if it fails.
     // No need to check if (!decodedToken) afterwards.
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decodedToken);
+    // console.log(decodedToken);
     const { _id } = decodedToken;
 
     // 3. Security: Exclude the password (or other sensitive data) from being attached to req.user
