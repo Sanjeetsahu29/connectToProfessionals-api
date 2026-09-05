@@ -53,4 +53,8 @@ profileRouter.patch("/edit", userAuth, async (req, res) => {
   }
 });
 
+profileRouter.patch("/forgetPassword", userAuth, (req, res) => {
+  return res.json({ message: "Reset password" });
+});
+
 module.exports = profileRouter;
