@@ -21,8 +21,26 @@ const connectionRequestSchema = new mongoose.Schema(
   },
 );
 
+connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 });
 const ConnectionRequest = new mongoose.model(
   "ConnectionRequest",
   connectionRequestSchema,
 );
 module.exports = ConnectionRequest;
+
+/*
+  *connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 });
+    Why are we creating this index?
+      We create a compound index on fromUserId and toUserId because 
+      connection requests are commonly searched using both fields.
+      ConnectionRequest.findOne({
+        fromUserId,
+        toUserId
+      });
+
+      Without an index, MongoDB may need to scan many documents to find the matching request. 
+      With this index, MongoDB can locate the matching document much faster.
+
+
+
+*/
