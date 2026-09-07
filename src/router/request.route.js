@@ -3,33 +3,36 @@ const requestRouter = express.Router();
 const { userAuth } = require("../middlewares/auth");
 const ConnectionRequest = require("../models/connectionRequest.model");
 const User = require("../models/user.model");
+const mongoose = require("mongoose");
 
 requestRouter.post("/send/:status/:toUserId", userAuth, async (req, res) => {
   try {
     const fromUserId = req.user._id;
-    const toUserId = req.params.toUserId;
-    const status = req.params.status;
+    const { status, toUserId } = req.params;
 
     const ALLOWED_STATUS = ["interested", "ignored"];
+
+    // 1. Validate status
     if (!ALLOWED_STATUS.includes(status)) {
       return res
         .status(400)
         .json({ message: "Invalid connection status: " + status });
     }
 
-    // User should not be able send the connection request to himself
+    //2. Validate ObjectID
+    if (!mongoose.Types.ObjectId.isValid(toUserId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    // 3. Prevent sending request to yourself
     if (fromUserId.equals(toUserId)) {
       return res.status(400).json({
         message: "Cannot send connection request to yourself",
       });
     }
 
-    // we should validate the toUserId request parameter. Using this id, query the database
-    // whether the user exists with this id or not
-
-    // implement -> you can't send this connection request because this user have either deactivated or deleted his/her account
+    //4. Check whether target user exists
     const toUserExists = await User.findById(toUserId);
-    // console.log(toUserExists);
     if (!toUserExists) {
       return res.status(404).json({
         message:
@@ -41,18 +44,21 @@ requestRouter.post("/send/:status/:toUserId", userAuth, async (req, res) => {
     //I have send the connection once then I shouldn't be able to send the connection request to the same user
     // or If I have recieved the connection request then I also shouldn't able to send the connection request
 
-    //implement match -> if you send the connection request to those user who have already sent you the connection request then it is a match
+    // 5. Check whether a request already exists in either direction, whether you have sent the connection or received the connection
     const existingConnectionRequest = await ConnectionRequest.findOne({
       $or: [
         { fromUserId, toUserId },
         { fromUserId: toUserId, toUserId: fromUserId },
       ],
     });
+
     if (existingConnectionRequest) {
       return res
         .status(400)
         .json({ message: "Connection request already exists" });
     }
+
+    //6. Create connection request if connection request doesn't exists
     const connectionRequest = new ConnectionRequest({
       fromUserId,
       toUserId,
@@ -98,7 +104,6 @@ requestRouter.post("/review/:status/:requestId", userAuth, async (req, res) => {
       toUserId: loggedInUser._id,
       status: "interested",
     });
-    console.log(connectionRequest);
     if (!connectionRequest) {
       return res.status(404).json({ message: "Connection request not found" });
     }

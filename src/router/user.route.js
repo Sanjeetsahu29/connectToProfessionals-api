@@ -17,7 +17,16 @@ userRouter.get("/connections", userAuth, async (req, res) => {
     const connections = await ConnectionRequest.find({
       status: "accepted",
       $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
-    });
+    })
+      .populate("fromUserId", [
+        "firstName",
+        "lastName",
+        // "age",
+        // "gender",
+        // "skills",
+        // "interests",
+      ])
+      .populate("toUserId", ["firstName", "lastName", "gender", "age"]);
     return res
       .status(200)
       .json({ message: "All connection fetched successfully", connections });
@@ -89,11 +98,9 @@ userRouter.get("/connection/sent/:status", userAuth, async (req, res) => {
     console.log(fetchedConnections);
     if (fetchedConnections.length === 0) {
       if (status === "interested") {
-        return res
-          .status(200)
-          .json({
-            message: "You have not sent any pending connection requests",
-          });
+        return res.status(200).json({
+          message: "You have not sent any pending connection requests",
+        });
       } else {
         return res.status(200).json({
           message:

@@ -70,6 +70,7 @@ const userSchema = new mongoose.Schema(
         message: "Gender should be either 'male', 'female', or 'other'",
       },
       immutable: true,
+      required: true,
     },
     about: {
       type: String,

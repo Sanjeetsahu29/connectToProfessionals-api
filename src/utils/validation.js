@@ -6,18 +6,24 @@ const validateSignupData = (req) => {
   }
 
   //2. Required fields for this API
-  const { firstName, lastName, email, password } = req.body;
-  if (!firstName || !lastName || !email || !password) {
+  const { firstName, lastName, email, password, gender } = req.body;
+  if (!firstName || !lastName || !email || !password || !gender) {
     throw new Error("All fields are required");
   }
 
   //3. Make sure the client isn't sending unexpected fields
-  const allowedFields = ["firstName", "lastName", "email", "password"];
+  const allowedFields = [
+    "firstName",
+    "lastName",
+    "email",
+    "password",
+    "gender",
+  ];
   const isValidFields = Object.keys(req.body).filter(
     (field) => !allowedFields.includes(field),
   );
   if (isValidFields.length > 0) {
-    throw new Error(`Invalid fields provided: ${inValidFields.join(", ")}`);
+    throw new Error(`Invalid fields provided: ${isValidFields.join(", ")}`);
   }
 
   //4. Basic email format validation

@@ -7,7 +7,7 @@ const { validateSignupData } = require("../utils/validation");
 authRouter.post("/signup", async (req, res) => {
   try {
     validateSignupData(req);
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, email, password, gender } = req.body;
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -21,6 +21,7 @@ authRouter.post("/signup", async (req, res) => {
       lastName,
       email,
       password: passwordHash,
+      gender,
     });
     const savedUser = await newUser.save();
     res.status(201).json({
