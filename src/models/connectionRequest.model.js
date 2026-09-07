@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 
+/*
+ * fromUserId => toUserId, request sent
+ * toUserId   => fromUserId, request recieved
+ */
 const connectionRequestSchema = new mongoose.Schema(
   {
     fromUserId: {
