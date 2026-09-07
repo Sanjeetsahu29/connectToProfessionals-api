@@ -75,4 +75,43 @@ requestRouter.post("/send/:status/:toUserId", userAuth, async (req, res) => {
       .json({ message: "Error in sending connection request: " + err.message });
   }
 });
+
+requestRouter.post("/review/:status/:requestId", userAuth, async (req, res) => {
+  const loggedInUser = req.user;
+  // const status = req.params.status;
+  // const requestId = req.params.requestId;
+  const { status, requestId } = req.params;
+  // In order to accepted or reject the connection request, first I have to retrieve the connection request
+  // in connection request collection, I have to search for all those document where user have recieved
+  // connection request by making a query in ConnectionRequest collection to find the documents using
+  // loggedIn._id and status must be interested
+  // ConnectionRequest.find({$or[ {toUserId: loggedIn._id}, status:"interested" ]})
+  try {
+    const ALLOWED_STATUS = ["accepted", "rejected"];
+    if (!ALLOWED_STATUS.includes(status)) {
+      return res
+        .status(400)
+        .json({ message: "Invalid review status for connection request" });
+    }
+    const connectionRequest = await ConnectionRequest.findOne({
+      _id: requestId,
+      toUserId: loggedInUser._id,
+      status: "interested",
+    });
+    console.log(connectionRequest);
+    if (!connectionRequest) {
+      return res.status(404).json({ message: "Connection request not found" });
+    }
+    connectionRequest.status = status;
+    const updatedConnectionRequest = await connectionRequest.save();
+    return res.status(200).json({
+      message: `Connection Request : ${updatedConnectionRequest.status}`,
+      updatedConnectionRequest,
+    });
+  } catch (err) {
+    res.status(400).json({
+      message: "Error in updating the connection request: " + err.message,
+    });
+  }
+});
 module.exports = requestRouter;
