@@ -55,7 +55,10 @@ requestRouter.post("/send/:status/:toUserId", userAuth, async (req, res) => {
     if (existingConnectionRequest) {
       return res
         .status(400)
-        .json({ message: "Connection request already exists" });
+        .json({
+          message:
+            "Connection request already exists. Either you have sent the request or received it",
+        });
     }
 
     //6. Create connection request if connection request doesn't exists
@@ -82,6 +85,7 @@ requestRouter.post("/send/:status/:toUserId", userAuth, async (req, res) => {
   }
 });
 
+// api to review the received connection request => either accept it or reject it
 requestRouter.post("/review/:status/:requestId", userAuth, async (req, res) => {
   const loggedInUser = req.user;
   // const status = req.params.status;
