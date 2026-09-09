@@ -67,58 +67,6 @@ app.use(
 */
 const port = process.env.PORT || 3000;
 
-app.get("/users", async (req, res) => {
-  try {
-    const allUsers = await User.find({}).select("-password");
-    if (allUsers.length === 0) {
-      res.status(200).json({
-        message: "No users found",
-        users: allUsers,
-      });
-    } else {
-      res.status(200).json({
-        message: `Total ${allUsers.length} users are there in the database`,
-        users: allUsers,
-      });
-    }
-  } catch (err) {
-    res.status(500).json({
-      message: "Error finding users",
-      error: err.message,
-    });
-  }
-});
-
-app.post("/sendConnectionRequest", userAuth, async (req, res) => {
-  const user = req.user;
-  console.log("Sending a connection request");
-  res
-    .status(200)
-    .json({ message: `${user.firstName} has sent you connection request` });
-});
-
-app.delete("/user", async (req, res) => {
-  const { emailID } = req.body;
-  try {
-    const deletedUser = await User.findOneAndDelete({ email: emailID });
-    if (deletedUser) {
-      res.status(200).json({
-        message: "User deleted successfully",
-        user: deletedUser,
-      });
-    } else {
-      res.status(404).json({
-        message: "User not found",
-      });
-    }
-  } catch (err) {
-    res.status(500).json({
-      message: "Error deleting user",
-      error: err.message,
-    });
-  }
-});
-
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/profile", profileRouter);
 app.use("/api/v1/request", requestRouter);
