@@ -9,7 +9,7 @@ const userAuth = async (req, res, next) => {
     // 1. ADDED 'return' and changed status to 401
     if (!token) {
       return res.status(401).json({
-        message: "Token is missing. Please login again.",
+        message: "Unauthorised. Please login again.",
       });
     }
 
